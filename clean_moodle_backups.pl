@@ -9,9 +9,9 @@ my $message_text  = "Clean Moodle backups files automatically.";
 my $exit_status   = 0;          ## The exit status to use
 my $filehandle    = \*STDERR;   ## The filehandle to write to
   
-pod2usage({ -message => $message_text,
-            -exitval => $exit_status,  
-            -output  => $filehandle });
+#pod2usage({ -message => $message_text,
+#            -exitval => $exit_status,  
+#            -output  => $filehandle });
 
 my $ROOTDIR  = "/var/moodledata/filedir";
 my $DATABASE = "moodle";
