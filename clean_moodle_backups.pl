@@ -13,7 +13,7 @@ my $filehandle    = \*STDERR;   ## The filehandle to write to
 #            -exitval => $exit_status,  
 #            -output  => $filehandle });
 
-my $ROOTDIR  = "/var/moodledata/filedir";
+my $ROOTDIR  = "./";
 my $DATABASE = "moodle";
 my $DAYSOLD  = 60;
 my $PORT     = 3306;
@@ -23,6 +23,7 @@ my $PASSWORD;
 GetOptions("d|db=s"       => \$DATABASE,
            "o|daysold=i"  => \$DAYSOLD,
            "p|port=i"     => \$PORT,
+           "r|rootdir=s"  => \$ROOTDIR,
            "s|host=s"     => \$SERVER,
            "u|user=s"     => \$USER,
            "w|password=s" => \$PASSWORD);
@@ -49,7 +50,14 @@ sub main {
     my $pwd = $PASSWORD;
     my $dsn = "dbi:mysql:$DATABASE:$SERVER:$PORT";
     my $dbc = DBI->connect($dsn, $user, $pwd) || die;
-    my $query = "SELECT id, contenthash, timecreated, timemodified FROM mdl_files ORDER BY id";
+    # time and timemodified are in unix timestamp format - e.g. number of seconds since 1/1/1970 - 
+    # so we multiplicate $DAYSOLD by 86400 to get time "$DAYSOLD" ago.
+    my $datefrom = time - 86400 * $DAYSOLD;
+    my $query = qq(SELECT id, contenthash, timecreated, timemodified 
+                   FROM mdl_files 
+                   WHERE (filename LIKE 'backup%.zip' OR filename LIKE 'backup%.mbz')
+                    AND timemodified <= $datefrom
+                   ORDER BY id);
     my $sth = $dbc->prepare($query);
     $sth->execute();
     while (my $row = $sth->fetchrow_hashref) {
@@ -59,7 +67,7 @@ sub main {
         my $fulldir = "$ROOTDIR/$dirs->{'dir'}";
         my $fullsubdir = "$fulldir/$dirs->{'subdir'}";
         my $fullpath = "$fullsubdir/$hash";
-        if (-e $fullpath && $row->{"timemodified"} / 86400 > $DAYSOLD) {
+        if (-e $fullpath) {
             print "let's remove $fullpath\n";
             system("rm -f $fullpath")
         }
