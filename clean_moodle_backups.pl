@@ -57,7 +57,7 @@ sub main {
                    FROM mdl_files 
                    WHERE (filename LIKE 'backup%.zip' OR filename LIKE 'backup%.mbz')
                     AND timemodified <= $datefrom
-                   ORDER BY id);
+                   ORDER BY timemodified desc);
     my $sth = $dbc->prepare($query);
     $sth->execute();
     while (my $row = $sth->fetchrow_hashref) {
