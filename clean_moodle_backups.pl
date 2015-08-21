@@ -69,7 +69,9 @@ sub main {
         my $fullpath = "$fullsubdir/$hash";
         if (-e $fullpath) {
             print "let's remove $fullpath\n";
-            system("rm -f $fullpath")
+            my $delquery = "DELETE FROM mdl_files WHERE id = $id";
+            my $sth = $dbc->prepare($delquery);
+            system("rm -f $fullpath") && $sth->execute(); 
         }
         for $path (($fullsubdir, $fulldir)) {
             if (-d $path && pathIsEmpty($path)) {
