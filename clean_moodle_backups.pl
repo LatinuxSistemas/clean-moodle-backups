@@ -13,7 +13,7 @@ my $filehandle    = \*STDERR;   ## The filehandle to write to
 #            -exitval => $exit_status,  
 #            -output  => $filehandle });
 
-my $ROOTDIR  = "./";
+my $FILEDIR  = "./";
 my $DATABASE = "moodle";
 my $DAYSOLD  = 60;
 my $PORT     = 3306;
@@ -21,9 +21,9 @@ my $SERVER   = "localhost";
 my $USER     = "root";
 my $PASSWORD;
 GetOptions("d|db=s"       => \$DATABASE,
+           "f|filedir=s"  => \$FILEDIR,
            "o|daysold=i"  => \$DAYSOLD,
            "p|port=i"     => \$PORT,
-           "r|rootdir=s"  => \$ROOTDIR,
            "s|host=s"     => \$SERVER,
            "u|user=s"     => \$USER,
            "w|password=s" => \$PASSWORD);
@@ -64,20 +64,21 @@ sub main {
         my $id = $row->{"id"};
         my $hash = $row->{"contenthash"};
         my $dirs = getPathFromHash($hash);
-        my $fulldir = "$ROOTDIR/$dirs->{'dir'}";
+        my $fulldir = "$FILEDIR/$dirs->{'dir'}";
         my $fullsubdir = "$fulldir/$dirs->{'subdir'}";
         my $fullpath = "$fullsubdir/$hash";
         if (-e $fullpath) {
             print "let's remove $fullpath\n";
-            my $delquery = "DELETE FROM mdl_files WHERE id = $id";
-            my $sth = $dbc->prepare($delquery);
-            system("rm -f $fullpath") && $sth->execute(); 
+            system("rm -f $fullpath");
         }
         for $path (($fullsubdir, $fulldir)) {
             if (-d $path && pathIsEmpty($path)) {
                 print "let's remove $path\n";
                 system("rm -rf $path")
             }
+        my $delquery = "DELETE FROM mdl_files WHERE id = $id";
+        my $delsth = $dbc->prepare($delquery);
+        $delsth->execute(); 
         }
     }
     $dbc->disconnect;
