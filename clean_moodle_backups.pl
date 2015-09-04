@@ -68,16 +68,20 @@ sub main {
         my $fullsubdir = "$fulldir/$dirs->{'subdir'}";
         my $fullpath = "$fullsubdir/$hash";
         if (-e $fullpath) {
-            print "let's remove $fullpath\n";
+            my $datetime = localtime();
+            print "$datetime : let's remove file $fullpath\n";
             system("rm -f $fullpath");
         }
         for $path (($fullsubdir, $fulldir)) {
             if (-d $path && pathIsEmpty($path)) {
-                print "let's remove $path\n";
+                my $datetime = localtime();
+                print "$datetime : let's remove dir $path\n";
                 system("rm -rf $path")
             }
         my $delquery = "DELETE FROM mdl_files WHERE id = $id";
         my $delsth = $dbc->prepare($delquery);
+        my $datetime = localtime();
+        print "$datetime : cleaning database, delete row with id: $id\n";
         $delsth->execute(); 
         }
     }
